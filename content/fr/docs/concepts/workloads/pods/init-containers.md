@@ -117,6 +117,30 @@ spec:
     command: ['sh', '-c', "until nslookup mydb.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo en attente de mydb; sleep 2; done"]
 ```
 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-test-pod
+spec:
+  containers:
+  - name: myapp-container
+    image: alpine
+    command: ['sh', '-c', 'if [ -e /workdir/test.txt ]; then sleep 99999; fi']
+    volumeMounts:
+    - mountPath: /workdir
+      name: workdir
+  initContainers:
+  - name: init-myservice
+    image: busybox:1.28
+    command: ['sh', '-c', 'mkdir /workdir; echo>/workdir/test.txt']
+    volumeMounts:
+    - mountPath: /workdir
+      name: workdir
+  volumes:
+  - name: workdir
+    emptyDir: {}
+	
+
 Les fichiers YAML suivants résument les services `mydb` et `myservice` :
 
 ```yaml
